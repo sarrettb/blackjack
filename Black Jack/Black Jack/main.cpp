@@ -3,10 +3,18 @@
 
 int main()
 {
-	std::cout << "----- BLACK JACK -----\n\n"; 
-	blackjack::Deck card_deck;
-	card_deck.shuffle();
-	std::cout << card_deck; 
+	std::cout << "----- BLACK JACK CONSOLE APPLICATION -----\n\n"; 
+
+	try
+	{
+		blackjack::play();
+	}
+
+	catch (std::runtime_error& error)
+	{
+		std::cout << error.what(); 
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS; 
 }

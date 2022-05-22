@@ -42,22 +42,51 @@ namespace blackjack
 	class Deck
 	{
 	public: 
-		Deck(); 
-		const Card& operator [] (size_t index) const;
-		friend std::ostream& operator << (std::ostream& out, const Deck& d);
-		void shuffle(int numShuffles = 5);
+		Deck(bool loadDeck = true);
+		Card& operator [] (size_t index);
+		static const int NUM_CARDS = 52;
+		static const int NUM_SUITES = 4;
+		static const int NUM_FACE_VALUE = 13;
+		static constexpr const char* SUITE_NAMES[NUM_SUITES] = { "Hearts", "Diamonds", "Spades", "Clubs" };
+		static constexpr const char* FACE_VALUE_NAMES[NUM_FACE_VALUE] = { "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King" };
 
 	private:
-		static const int NUM_CARDS = 52;
-		static const int NUM_SUITES = 4; 
-		static const int NUM_FACE_VALUE = 13;
-		static constexpr const char* SUITE_NAMES[NUM_SUITES] = {"Hearts", "Diamonds", "Spades", "Clubs" };
-		static constexpr const char* FACE_VALUE_NAMES[NUM_FACE_VALUE] = { "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King" };
 		Card deck[NUM_CARDS];
+		void load_deck(); 
 	};
 
-	std::ostream& operator << (std::ostream& out, const Deck& d);
+	class Dealer
+	{
+	public:
+		Dealer(int numDecks = 1);
+		~Dealer(); 
+		void shuffle(int numShuffles = 5); 
+		friend std::ostream& operator << (std::ostream& out, const Dealer& d);
+		const int numDecks() const { return num_decks; }
+		const int totalCards() const { return Deck::NUM_CARDS * num_decks; }
+		const Card& operator () (size_t deckIndex, size_t cardIndex) const ; 
 
+	private:
+		int num_decks; 
+		Deck* card_deck;
+		void swap_cards(Card& a, Card& b);
+	};
+
+	std::ostream& operator << (std::ostream& out, const Dealer& d);
+
+	namespace tester
+	{
+		template <typename T> 
+		struct Test_Result
+		{
+			bool bSuccess;
+			T data;
+		};
+
+		Test_Result<Card> test_shuffle(const Dealer& d);
+	}
+
+	void play(); 
 }
 
 #endif 
