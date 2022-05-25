@@ -85,45 +85,38 @@ namespace blackjack
 	* I could have used std::list or std::vector 
 	* but I want some practice coding some data structures 
 	*/
-	class CardNode
-	{
-	public:
-		CardNode();
-		~CardNode();
-		void add(const Card& c);
-
-		Card card; 
-		CardNode* nextCard;
-
-	private:
-		// internal functionality
-		CardNode(const Card& c);
-
-	};
-
 	class Hand
 	{
 	public:
-		Hand();  
+		Hand(); 
 		~Hand(); 
-		void show_hand(); 
-		void init_hand(const Card& c1, const Card& c2);
-		void draw_card(const Card& c); 
-		
+		void add(const Card& c);
+		friend std::ostream& operator << (std::ostream& out, Hand& d);
+
 	private:
-		CardNode* listOfCards;
+
+		struct CardNode
+		{
+			Card card;
+			CardNode* next;
+		};
+
+		CardNode* head;
 	};
+
+	std::ostream& operator << (std::ostream& out, Hand& d);
 
 	class Player
 	{
 	public:
-
-		Player(); 
-		void set_hand(Card& c1, Card& c2);
-		void show_hand() { hand.show_hand(); }
+		Player() : playerName(nullptr) {};
+		void draw_card(const Card& c); 
+		void show_hand(); 
+		void set_name(const char* name); 
 
 	private:
-		Hand hand; 
+		Hand hand;
+		const char* playerName;
 	};
 
 	namespace tester
@@ -139,8 +132,6 @@ namespace blackjack
 	}
 
 	void play(); 
-	void init_game(); 
-
 }
 
 #endif 

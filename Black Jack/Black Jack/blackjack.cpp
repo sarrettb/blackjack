@@ -1,5 +1,5 @@
 #include "blackjack.h"
-#include <string>
+#include <thread> 
 
 /* Various Card Constructors */
 blackjack::Card::Card(const Suite&& s, const Face_Value&& f) : suite(s), value(f) {};
@@ -101,7 +101,7 @@ blackjack::Card blackjack::Dealer::deal_card()
 	if (deckIndex >= numDecks)
 		throw std::runtime_error("ERROR: Ran out of cards\n");
 
-	return card_deck[cardIndex++][deckIndex];
+	return card_deck[deckIndex][cardIndex++];
 }
 
 /* Prints the deck to console */  
@@ -133,69 +133,80 @@ const blackjack::Card& blackjack::Dealer::operator () (size_t deckIndex, size_t 
 	return card_deck[deckIndex][cardIndex]; 
 }
 
-blackjack::CardNode::CardNode(const Card& c)
-{
-	nextCard = nullptr;
-	card = c; 
-}
-
-blackjack::CardNode::CardNode()
-{
-	nextCard = nullptr;
-}
-
-/* How to delete nodes? */
-blackjack::CardNode::~CardNode()
-{
-	
-}
-
-void blackjack::CardNode::add(const Card& c)
-{
-	nextCard = new CardNode(c);
-}
-
+/* Build an empty hand */
 blackjack::Hand::Hand()
 {
-	listOfCards = nullptr;
+	head = nullptr;
 }
 
-/* How to delete list */
+/* Destroy the hand */
 blackjack::Hand::~Hand()
 {
-	if (listOfCards != nullptr)
-		delete listOfCards;
-}
-
-void blackjack::Hand::draw_card(const Card& c)
-{
-	if (listOfCards == nullptr)
-		throw std::runtime_error("ERROR: Must call init_hand() first\n");
-	listOfCards->add(c);
-}
-
-void blackjack::Hand::init_hand(const Card& c1, const Card& c2)
-{
-	listOfCards = new CardNode; 
-	listOfCards->add(c1);
-	listOfCards->add(c2); 
-}
-
-void blackjack::Hand::show_hand()
-{
-	std::cout << "Your Hand is: \n";
-	CardNode* temp = listOfCards;
-	do
+	CardNode* tempA = head;
+	CardNode* tempB = nullptr; 
+	while (tempA != nullptr)
 	{
-		std::cout << temp->card << std::endl;
-		temp = temp->nextCard;
-	} while (temp != nullptr);
+		tempB = tempA;
+		tempA = tempA->next;
+		delete tempB;
+	}
 }
 
-blackjack::Player::Player() {};
-void blackjack::Player::set_hand(Card& c1, Card& c2)
+/* Add a card to the hand */
+void blackjack::Hand::add(const Card& c)
 {
-	hand.init_hand(c1, c2); 
+	CardNode** tempHead = &head;
+	CardNode* temp = nullptr;
+
+	/* Node to insert at end of list */ 
+	CardNode* lastNode = new CardNode;
+	lastNode->next = nullptr;
+	lastNode->card = c;
+
+	if (*tempHead == nullptr)
+		*tempHead = lastNode;
+
+	else
+	{
+		temp = *tempHead;
+		/* Traverse list to get last node*/
+		while (temp->next != nullptr)
+			temp = temp->next;
+
+		temp->next = lastNode;
+	}
+}
+
+/* Print the hand to the console */
+std::ostream& blackjack::operator << (std::ostream& out, Hand& d)
+{
+	Hand::CardNode* node = d.head;
+	while (node != nullptr)
+	{
+		out << node->card;
+		node = node->next;
+		if (node != nullptr)
+			out << ", ";
+	}
+	out << "\n\n";
+	return out;
+}
+
+/* Add a card to the Player's hand */
+void blackjack::Player::draw_card(const Card& c)
+{
+	hand.add(c); 
+}
+
+void blackjack::Player::set_name(const char* name)
+{
+	playerName = name;
+}
+
+/* Print Player's hand to console */
+void blackjack::Player::show_hand()
+{
+	std::cout << playerName << "'s Cards: " << hand;
 }
 
 /* Test to see if every card is still in the deck and did not get lost somehow */
@@ -234,38 +245,27 @@ void blackjack::play()
 {
 	const int NUM_DECKS = 8; // Vegas usually uses 6-8 decks 
 	Dealer dealer(NUM_DECKS);
+	Player player;
+	std::string name;
+
+	std::cout << "Enter Player's Name: ";
+	std::cin >> name;
+	std::cout << std::endl;
+	player.set_name(name.c_str());
+
+	using namespace std::chrono_literals;
+	std::cout << "Dealer Shuffling...\n\n";
 	dealer.shuffle(); 
-
-
-	std::cout << "----- SHUFFLED DECK -----\n\n" << dealer << std::endl;
-
-	/*
-	// Tester Code 
-	std::cout << "----- SHUFFLE TEST ------\n\n";
-	auto result = tester::test_shuffle(dealer);
-	if (result.bSuccess)
-	{
-		std::cout << "The Dealer properly shuffled the deck\n";
-	}
-
-	else
-	{
-		std::cout << std::string("The Dealer improperly shuffled the deck, mistake on ")
-					+ std::string(Deck::FACE_VALUE_NAMES[((int)result.data.value)]) + " of "
-					+ std::string(Deck::SUITE_NAMES[((int)result.data.suite)]) 
-			<< std::endl;
-	}
-	*/ 
-
-	Player player; 
-	Card firstTwo[2]; 
-
+	std::this_thread::sleep_for(2s); // simulate shuffling
+	
+	std::cout << "Dealing Cards...\n\n"; 
+	std::this_thread::sleep_for(1s);
 	for (int i = 0; i < 2; i++)
-		firstTwo[i] = dealer.deal_card(); 
+	{
+		player.draw_card(dealer.deal_card());
+	}
 
-	player.set_hand(firstTwo[0], firstTwo[1]); 
 	player.show_hand(); 
-
 	
 
 }
