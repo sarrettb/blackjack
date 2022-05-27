@@ -1,5 +1,7 @@
 ﻿  blackjack.cpp
-C:\dev\black-jack\Black Jack\Black Jack\blackjack.cpp(65,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-C:\dev\black-jack\Black Jack\Black Jack\blackjack.cpp(66,6): warning C4101: 'r': unreferenced local variable
-C:\dev\black-jack\Black Jack\Black Jack\blackjack.cpp(123,16): warning C4018: '>=': signed/unsigned mismatch
+C:\dev\black-jack\Black Jack\Black Jack\blackjack.cpp(140,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\dev\black-jack\Black Jack\Black Jack\blackjack.cpp(141,6): warning C4101: 'r': unreferenced local variable
+C:\dev\black-jack\Black Jack\Black Jack\blackjack.cpp(210,16): warning C4018: '>=': signed/unsigned mismatch
+  main.cpp
+  Generating Code...
   Black Jack.vcxproj -> C:\dev\black-jack\Black Jack\Debug\Black Jack.exe

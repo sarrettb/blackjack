@@ -42,6 +42,7 @@ namespace blackjack
 		static const int NUM_FACE_VALUE = 13;
 		static constexpr const char* SUITE_NAMES[NUM_SUITES] = { "Hearts", "Diamonds", "Spades", "Clubs" };
 		static constexpr const char* FACE_VALUE_NAMES[NUM_FACE_VALUE] = { "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King" };
+		static constexpr const int FACE_VALUES[NUM_FACE_VALUE] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10 };
 		friend std::ostream& operator << (std::ostream& out, const Card& c);
 	};
 
@@ -59,38 +60,24 @@ namespace blackjack
 		void load_deck(); 
 	};
 
-	class Dealer
+	struct Score
 	{
-	public:
-		Dealer(int nDecks = 1);
-		~Dealer(); 
-		void shuffle(int numShuffles = 5); 
-		Card deal_card();
-		friend std::ostream& operator << (std::ostream& out, const Dealer& d);
-		const int num_decks() const { return numDecks; }
-		const int totalCards() const { return Deck::NUM_CARDS * numDecks; }
-		const Card& operator () (size_t deckIndex, size_t cardIndex) const ; 
-
-	private:
-		int numDecks;
-		int cardIndex; 
-		int deckIndex;
-		Deck* card_deck;
-		void swap_cards(Card& a, Card& b);
+		int scoreA; 
+		int scoreB;
+		Score() : scoreA(0), scoreB(-1) {}; 
 	};
 
-	std::ostream& operator << (std::ostream& out, const Dealer& d);
-
 	/* A Hand is a linked list of Cards
-	* I could have used std::list or std::vector 
-	* but I want some practice coding some data structures 
+	* I could have used std::list or std::vector
+	* but I want some practice coding some data structures
 	*/
 	class Hand
 	{
 	public:
-		Hand(); 
-		~Hand(); 
+		Hand();
+		~Hand();
 		void add(const Card& c);
+		Score get_score(); 
 		friend std::ostream& operator << (std::ostream& out, Hand& d);
 
 	private:
@@ -106,6 +93,31 @@ namespace blackjack
 
 	std::ostream& operator << (std::ostream& out, Hand& d);
 
+	class Dealer
+	{
+	public:
+		Dealer(int nDecks = 1);
+		~Dealer(); 
+		void shuffle(int numShuffles = 5); 
+		Card deal_card();
+		void draw_card(); 
+		void show_hand(); 
+		friend std::ostream& operator << (std::ostream& out, const Dealer& d);
+		const int num_decks() const { return numDecks; }
+		const int totalCards() const { return Deck::NUM_CARDS * numDecks; }
+		const Card& operator () (size_t deckIndex, size_t cardIndex) const ; 
+
+	private:
+		int numDecks;
+		int cardIndex; 
+		int deckIndex;
+		Deck* card_deck;
+		Hand hand; 
+		void swap_cards(Card& a, Card& b);
+	};
+
+	std::ostream& operator << (std::ostream& out, const Dealer& d);
+
 	class Player
 	{
 	public:
@@ -116,7 +128,7 @@ namespace blackjack
 
 	private:
 		Hand hand;
-		const char* playerName;
+		const char* playerName; 
 	};
 
 	namespace tester

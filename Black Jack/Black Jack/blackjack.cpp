@@ -44,6 +44,81 @@ blackjack::Card& blackjack::Deck::operator [] (size_t index)
 	return deck[index];
 }
 
+/* Build an empty hand */
+blackjack::Hand::Hand()
+{
+	head = nullptr;
+}
+
+/* Destroy the hand */
+blackjack::Hand::~Hand()
+{
+	CardNode* tempA = head;
+	CardNode* tempB = nullptr;
+	while (tempA != nullptr)
+	{
+		tempB = tempA;
+		tempA = tempA->next;
+		delete tempB;
+	}
+}
+
+/* Add a card to the hand */
+void blackjack::Hand::add(const Card& c)
+{
+	CardNode** tempHead = &head;
+	CardNode* temp = nullptr;
+
+	/* Node to insert at end of list */
+	CardNode* lastNode = new CardNode;
+	lastNode->next = nullptr;
+	lastNode->card = c;
+
+	if (*tempHead == nullptr)
+		*tempHead = lastNode;
+
+	else
+	{
+		temp = *tempHead;
+		/* Traverse list to get last node*/
+		while (temp->next != nullptr)
+			temp = temp->next;
+
+		temp->next = lastNode;
+	}
+}
+
+blackjack::Score blackjack::Hand::get_score()
+{
+	Score score; 
+	int val;
+	CardNode* tempA = head;
+	while (tempA != nullptr)
+	{
+		val = Card::FACE_VALUES[(int)tempA->card.value];
+		score.scoreA += val;
+		if (val == 1)
+			score.scoreB = score.scoreA + 10;
+		tempA = tempA->next;
+	}
+	return score;
+}
+
+/* Print the hand to the console */
+std::ostream& blackjack::operator << (std::ostream& out, Hand& d)
+{
+	Hand::CardNode* node = d.head;
+	while (node != nullptr)
+	{
+		out << node->card;
+		node = node->next;
+		if (node != nullptr)
+			out << ", ";
+	}
+	out << "\n\n";
+	return out;
+}
+
 /* Constructor, allocate memory for the decks */
 blackjack::Dealer::Dealer(int nDecks) : numDecks(nDecks), cardIndex(0), deckIndex(0)
 {
@@ -104,6 +179,18 @@ blackjack::Card blackjack::Dealer::deal_card()
 	return card_deck[deckIndex][cardIndex++];
 }
 
+void blackjack::Dealer::draw_card()
+{
+	hand.add(deal_card());
+}
+
+void blackjack::Dealer::show_hand()
+{
+	Score score = hand.get_score(); 
+	std::cout << "Dealer's Cards: " << hand
+		<< "Score: (" << score.scoreA << ", " << score.scoreB << ")\n\n";
+}
+
 /* Prints the deck to console */  
 std::ostream& blackjack::operator << (std::ostream& out, const blackjack::Dealer& d)
 {
@@ -133,65 +220,6 @@ const blackjack::Card& blackjack::Dealer::operator () (size_t deckIndex, size_t 
 	return card_deck[deckIndex][cardIndex]; 
 }
 
-/* Build an empty hand */
-blackjack::Hand::Hand()
-{
-	head = nullptr;
-}
-
-/* Destroy the hand */
-blackjack::Hand::~Hand()
-{
-	CardNode* tempA = head;
-	CardNode* tempB = nullptr; 
-	while (tempA != nullptr)
-	{
-		tempB = tempA;
-		tempA = tempA->next;
-		delete tempB;
-	}
-}
-
-/* Add a card to the hand */
-void blackjack::Hand::add(const Card& c)
-{
-	CardNode** tempHead = &head;
-	CardNode* temp = nullptr;
-
-	/* Node to insert at end of list */ 
-	CardNode* lastNode = new CardNode;
-	lastNode->next = nullptr;
-	lastNode->card = c;
-
-	if (*tempHead == nullptr)
-		*tempHead = lastNode;
-
-	else
-	{
-		temp = *tempHead;
-		/* Traverse list to get last node*/
-		while (temp->next != nullptr)
-			temp = temp->next;
-
-		temp->next = lastNode;
-	}
-}
-
-/* Print the hand to the console */
-std::ostream& blackjack::operator << (std::ostream& out, Hand& d)
-{
-	Hand::CardNode* node = d.head;
-	while (node != nullptr)
-	{
-		out << node->card;
-		node = node->next;
-		if (node != nullptr)
-			out << ", ";
-	}
-	out << "\n\n";
-	return out;
-}
-
 /* Add a card to the Player's hand */
 void blackjack::Player::draw_card(const Card& c)
 {
@@ -206,7 +234,9 @@ void blackjack::Player::set_name(const char* name)
 /* Print Player's hand to console */
 void blackjack::Player::show_hand()
 {
-	std::cout << playerName << "'s Cards: " << hand;
+	Score score = hand.get_score(); 
+	std::cout << playerName << "'s Cards: " << hand
+		<< "Score: (" << score.scoreA << ", " << score.scoreB << ")\n\n";
 }
 
 /* Test to see if every card is still in the deck and did not get lost somehow */
@@ -256,15 +286,17 @@ void blackjack::play()
 	using namespace std::chrono_literals;
 	std::cout << "Dealer Shuffling...\n\n";
 	dealer.shuffle(); 
-	std::this_thread::sleep_for(2s); // simulate shuffling
+	std::this_thread::sleep_for(1s); // simulate shuffling
 	
 	std::cout << "Dealing Cards...\n\n"; 
-	std::this_thread::sleep_for(1s);
+	std::this_thread::sleep_for(1s); // simulate dealing cards
 	for (int i = 0; i < 2; i++)
 	{
 		player.draw_card(dealer.deal_card());
+		dealer.draw_card();
 	}
 
+	dealer.show_hand();
 	player.show_hand(); 
 	
 
